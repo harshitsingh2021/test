@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: aster_oak_db
+    environment:
+      POSTGRES_USER: aster
+      POSTGRES_PASSWORD: aster
+      POSTGRES_DB: aster_oak
+    ports:
+      - "5433:5432"   # 5433 on the host so it cannot collide with a local Postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aster -d aster_oak"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:
