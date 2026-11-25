@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -24,13 +24,52 @@ DbDep = Annotated[Session, Depends(get_db)]
 
 
 class IngestRequest(BaseModel):
-    """All fields optional: a bare POST ingests the configured campaigns_raw.json."""
+    """All fields optional: a bare POST ingests the configured campaigns_raw.json.
+
+    The examples below are what Swagger pre-fills, so "Try it out -> Execute"
+    works on the first click instead of submitting placeholder values.
+    """
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {},
+                {"path": "campaigns_raw.json"},
+                {
+                    "payload": {
+                        "currency": "INR",
+                        "campaigns": [
+                            {
+                                "id": "cmp_demo",
+                                "name": "Retarget cart abandoners",
+                                "channel": "fb",
+                                "description": "Dynamic product ads.",
+                                "spend": "42,500",
+                                "impressions": 410000,
+                                "clicks": 15600,
+                                "conversions": 980,
+                                "revenue": 1470000,
+                            }
+                        ],
+                    }
+                },
+            ]
+        }
+    )
 
     path: str | None = Field(
-        default=None, description="Override the raw JSON file to ingest."
+        default=None,
+        description=(
+            "Path to a raw JSON file to ingest instead of the configured "
+            "campaigns_raw.json. Leave unset for the default."
+        ),
     )
     payload: dict[str, Any] | None = Field(
-        default=None, description="Ingest this document directly instead of reading a file."
+        default=None,
+        description=(
+            "Ingest this document directly instead of reading a file. Must be an "
+            "object with a 'campaigns' array. Takes precedence over 'path'."
+        ),
     )
 
 
